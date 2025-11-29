@@ -1,0 +1,174 @@
+framework:
+    messenger:
+        default_bus: command.bus
+        failure_transport: failed
+
+        buses:
+            command.bus: ~
+            query.bus: ~
+
+        transports:
+            failed:
+                dsn: 'doctrine://default?queue_name=failed'
+            sync: 'sync://'
+
+        routing:
+            # Country commands
+            'App\Application\Country\Command\CreateCountryCommand': sync
+            'App\Application\Country\Command\UpdateCountryCommand': sync
+            'App\Application\Country\Command\DeleteCountryCommand': sync
+            'App\Application\Country\Command\RestoreCountryCommand': sync
+
+            # Country queries
+            'App\Application\Country\Query\GetAllCountriesQuery': sync
+            'App\Application\Country\Query\GetCountriesByPaginateQuery': sync
+            'App\Application\Country\Query\FindCountryByNameQuery': sync
+            'App\Application\Country\Query\FindCountryByCodeQuery': sync
+            'App\Application\Country\Query\FindCountryByIdQuery': sync
+
+            # Region commands
+            'App\Application\Region\Command\CreateRegionCommand': sync
+            'App\Application\Region\Command\UpdateRegionCommand': sync
+            'App\Application\Region\Command\DeleteRegionCommand': sync
+            'App\Application\Region\Command\RestoreRegionCommand': sync
+
+            # Region queries
+            'App\Application\Region\Query\GetAllRegionsQuery': sync
+            'App\Application\Region\Query\GetRegionsByPaginateQuery': sync
+            'App\Application\Region\Query\FindRegionByNameQuery': sync
+            'App\Application\Region\Query\FindRegionByCodeQuery': sync
+            'App\Application\Region\Query\FindRegionByIdQuery': sync
+            'App\Application\Region\Query\FindRegionsByCountryQuery': sync
+
+            # Cities commands
+            'App\Application\City\Command\CreateCityCommand': sync
+            'App\Application\City\Command\UpdateCityCommand': sync
+            'App\Application\City\Command\DeleteCityCommand': sync
+            'App\Application\City\Command\RestoreCityCommand': sync
+
+            # Cities queries
+            'App\Application\City\Query\FindCitiesByRegionQuery': sync
+            'App\Application\City\Query\FindCityByIdQuery': sync
+            'App\Application\City\Query\FindCityByTypeAndNameQuery': sync
+            'App\Application\City\Query\GetAllCitiesQuery': sync
+            'App\Application\City\Query\GetCitiesByPaginateQuery': sync
+
+            # Addresses commands
+            'App\Application\Address\Command\CreateAddressCommand': sync
+            'App\Application\Address\Command\UpdateAddressCommand': sync
+            'App\Application\Address\Command\DeleteAddressCommand': sync
+            'App\Application\Address\Command\RestoreAddressCommand': sync
+
+            # Addresses queries
+            'App\Application\Address\Query\FindAddressesByCityQuery': sync
+            'App\Application\Address\Query\FindAddressByIdQuery': sync
+            'App\Application\Address\Query\FindAddressByAddressQuery': sync
+            'App\Application\Address\Query\GetAllAddressesQuery': sync
+            'App\Application\Address\Query\GetAddressesByPaginateQuery': sync
+            'App\Application\Address\Query\External\FindExternalAddressQuery': sync
+
+            # Currency commands
+            'App\Application\Currency\Command\CreateCurrencyCommand': sync
+            'App\Application\Currency\Command\UpdateCurrencyCommand': sync
+
+            # Currency queries
+            'App\Application\Currency\Query\FindCurrencyByCodeQuery': sync
+            'App\Application\Currency\Query\FindCurrencyByCodeDeactivatedQuery': sync
+            'App\Application\Currency\Query\FindCurrencyByIdQuery': sync
+            'App\Application\Currency\Query\FindCurrencyByNumQuery': sync
+            'App\Application\Currency\Query\GetAllCurrenciesQuery': sync
+            'App\Application\Currency\Query\GetCurrenciesByPaginateQuery': sync
+
+            # Delivery service commands
+            'App\Application\DeliveryService\Command\CreateDeliveryServiceCommand': sync
+            'App\Application\DeliveryService\Command\UpdateDeliveryServiceCommand': sync
+
+            'App\Application\DeliveryService\Command\CreateDeliveryServiceRestrictAreaCommand': sync
+            'App\Application\DeliveryService\Command\UpdateDeliveryServiceRestrictAreaCommand': sync
+
+            # Delivery service queries
+            'App\Application\DeliveryService\Query\FindDeliveryServiceByIdQuery': sync
+            'App\Application\DeliveryService\Query\FindDeliveryServiceByCodeQuery': sync
+            'App\Application\DeliveryService\Query\FindDeliveryServiceByCodeDeactivatedQuery': sync
+            'App\Application\DeliveryService\Query\GetAllDeliveryServicesQuery': sync
+            'App\Application\DeliveryService\Query\GetDeliveryServicesByPaginateQuery': sync
+
+            'App\Application\DeliveryService\Query\FindDeliveryServiceRestrictAreaByIdQuery': sync
+            'App\Application\DeliveryService\Query\FindDeliveryServiceRestrictAreaByDeliveryServiceIdQuery': sync
+
+            # Delivery method commands
+            'App\Application\DeliveryMethod\Command\CreateDeliveryMethodCommand': sync
+            'App\Application\DeliveryMethod\Command\UpdateDeliveryMethodCommand': sync
+
+            # Delivery method queries
+            'App\Application\DeliveryMethod\Query\FindDeliveryMethodByCodeQuery': sync
+            'App\Application\DeliveryMethod\Query\FindDeliveryMethodByShipmentIdQuery': sync
+            'App\Application\DeliveryMethod\Query\FindDeliveryMethodByCodeDeactivatedQuery': sync
+            'App\Application\DeliveryMethod\Query\GetAllDeliveryMethodQuery': sync
+
+            # TariffPlan commands
+            'App\Application\TariffPlan\Command\CreateTariffPlanCommand': sync
+            'App\Application\TariffPlan\Command\UpdateTariffPlanCommand': sync
+            # TariffPlan queries
+            'App\Application\TariffPlan\Query\FindTariffPlanByCodeQuery': sync
+            'App\Application\TariffPlan\Query\FindTariffPlanByIdQuery': sync
+            'App\Application\TariffPlan\Query\FindTariffPlanByIdDeactivatedQuery': sync
+            'App\Application\TariffPlan\Query\FindTariffPlanByServiceAndMethodQuery': sync
+            'App\Application\TariffPlan\Query\GetAllTariffPlansQuery': sync
+            'App\Application\TariffPlan\Query\GetTariffPlansByPaginateQuery': sync
+            'App\Application\TariffPlan\Query\GetActiveTariffPlansQuery': sync
+
+            # Contact commands
+            'App\Application\Contact\Command\CreateContactCommand': sync
+            'App\Application\Contact\Command\UpdateContactCommand': sync
+            # Contact queries
+            'App\Application\Contact\Query\FindContactByEmailQuery': sync
+            'App\Application\Contact\Query\FindContactByIdQuery': sync
+            'App\Application\Contact\Query\GetContactsByPaginateQuery': sync
+
+            # Shipment commands
+            'App\Application\Shipment\Command\CreateShipmentCommand': sync
+            'App\Application\Shipment\Command\BulkCreateShipmentCommand': sync
+            'App\Application\Shipment\Command\UpdateShipmentCommand': sync
+            'App\Application\Shipment\Command\CreateCalculateCommand': sync
+            'App\Application\Shipment\Command\ExpireCalculateCommand': sync
+            'App\Application\Shipment\Command\CreateStoreCommand': sync
+            'App\Application\Shipment\Command\CreateStoreWithProductsCommand': sync
+            'App\Application\Shipment\Command\TekTorgCreateShipmentCommand': sync
+            'App\Application\Shipment\Command\TekTorgCreateCalculateCommand': sync
+            # Shipment queries
+            'App\Application\Shipment\Query\FindShipmentByIdQuery': sync
+            'App\Application\Shipment\Query\FindShipmentsByQuery': sync
+            'App\Application\Shipment\Query\GetShipmentsByPaginateQuery': sync
+            'App\Application\Shipment\Query\FindCalculateByIdQuery': sync
+            'App\Application\Shipment\Query\FindCalculateByShipmentIdQuery': sync
+            'App\Application\Shipment\Query\FindProductByIdQuery': sync
+            'App\Application\Shipment\Query\FindProductByStoresQuery': sync
+            'App\Application\Shipment\Query\FindProductByStoreAndDeliveryPeriodQuery': sync
+            'App\Application\Shipment\Query\FindStoreByIdQuery': sync
+
+            # Tax commands
+            'App\Application\Tax\Command\CreateTaxCommand': sync
+            'App\Application\Tax\Command\UpdateTaxCommand': sync
+            'App\Application\Tax\Command\DeleteTaxCommand': sync
+            'App\Application\Tax\Command\RestoreTaxCommand': sync
+            # Tax queries
+            'App\Application\Tax\Query\GetAllTaxesQuery': sync
+            'App\Application\Tax\Query\GetTaxesByPaginateQuery': sync
+            'App\Application\Tax\Query\FindTaxByCountryAndNameQuery': sync
+            'App\Application\Tax\Query\FindTaxByIdQuery': sync
+            'App\Application\Tax\Query\FindTaxesByCountryQuery': sync
+
+            # pvz commands
+            'App\Application\PickupPoint\Command\CreatePickupPointCommand': sync
+            'App\Application\PickupPoint\Command\CreateCdekPickupPointCommand': sync
+            'App\Application\PickupPoint\Command\CreateDellinPickupPointCommand': sync
+
+            # pvz queries
+            'App\Application\PickupPoint\Query\GetAllPickupPointsQuery': sync
+            'App\Application\PickupPoint\Query\FindPickupPointByIdQuery': sync
+
+            # Directory
+            'App\Application\Directory\Command\ImportOkatoOktmoCommand': sync
+            'App\Application\Directory\Command\CreateOkatoOktmoCommand': sync
+

@@ -1,0 +1,56 @@
+version: '3.9'
+
+services:
+  shipment-ms-app:
+    container_name: shipment-ms-app
+    build:
+      context: .
+      dockerfile: .development/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www
+    ports:
+      - "9501:9501"
+    networks:
+      - shipment-ms-network
+      - global-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - shipment-ms-postgresql
+#    logging:
+#      driver: fluentd
+#      options:
+#        fluentd-address: localhost:24224
+#        tag: shipment-ms-local
+
+  shipment-ms-postgresql:
+    container_name: shipment-ms-postgresql
+    build:
+      context: .development/postgresql
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: shipment_ms_dev
+      POSTGRES_PASSWORD: password
+    networks:
+      - shipment-ms-network
+      - global-network
+    volumes:
+      - .development/postgresql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - pgsqldata:/var/lib/postgresql/data
+    ports:
+        - "5432:5432"
+
+volumes:
+  pgsqldata:
+    driver: local
+
+#Docker Networks
+networks:
+  shipment-ms-network:
+    driver: bridge
+  global-network:
+    external:
+      name: app-network

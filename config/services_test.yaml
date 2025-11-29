@@ -1,0 +1,24 @@
+services:
+  _defaults:
+    public: true
+
+  # Declare unused services
+  DaDataFindByAddressService:
+    arguments:
+      $dadataClient: '@DaData.Client'
+      $serializer: '@serializer'
+    public: true
+    class: App\Infrastructure\DaData\Service\FindByAddressService
+
+  CdekCalculateService:
+    public: true
+    alias: App\Infrastructure\DeliveryService\CDEK\Service\CdekCalculateService
+
+  DellinHttpClientService:
+    arguments:
+      $dellinClient: '@dellin.client'
+      $parameter: '@parameter_bag'
+      $serializer: '@serializer'
+      $cache: '@cache.app'
+    public: true
+    class: App\Infrastructure\DeliveryService\Dellin\Service\DellinHttpClientService

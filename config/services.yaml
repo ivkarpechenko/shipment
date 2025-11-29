@@ -1,0 +1,233 @@
+parameters:
+    dadata_key: '%env(DADATA_KEY)%'
+    dadata_token: '%env(DADATA_TOKEN)%'
+    dadata_secret: '%env(DADATA_SECRET)%'
+
+    cdek_base_url: '%env(CDEK_BASE_URL)%'
+    cdek_account: '%env(CDEK_ACCOUNT)%'
+    cdek_secure_password: '%env(CDEK_SECURE_PASSWORD)%'
+
+    dellin_base_url: '%env(DELLIN_BASE_URL)%'
+    dellin_account: '%env(DELLIN_ACCOUNT)%'
+    dellin_secure_password: '%env(DELLIN_SECURE_PASSWORD)%'
+    dellin_token: '%env(DELLIN_TOKEN)%'
+
+    dostavista_base_url: '%env(DOSTAVISTA_BASE_URL)%'
+    dostavista_token: '%env(DOSTAVISTA_TOKEN)%'
+
+    okato_file_path: '%env(OKATO_FILE_PATH)%'
+
+    available_cdek_tariffs_for_tek_torg: '%env(json:AVAILABLE_CDEK_TARIFFS_FOR_TEK_TORG)%'
+
+    # in grams
+    package.max_weight: '%env(float:PACKAGE_MAX_WEIGHT)%'
+    # in millimeters
+    package.max_height: '%env(int:PACKAGE_MAX_HEIGHT)%'
+    # in millimeters
+    package.max_width: '%env(int:PACKAGE_MAX_WIDTH)%'
+    # in millimeters
+    package.max_length: '%env(int:PACKAGE_MAX_LENGTH)%'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    _instanceof:
+        App\Application\CommandHandler:
+            tags:
+                - { name: messenger.message_handler, bus: command.bus }
+
+        App\Application\QueryHandler:
+            tags:
+                - { name: messenger.message_handler, bus: query.bus }
+
+        # Domain strategies
+        App\Domain\TariffPlan\Strategy\TariffPlanStrategyInterface:
+            tags: [ 'app.tariff_plan_strategy' ]
+        App\Domain\Shipment\Strategy\CalculateStrategyInterface:
+            tags: [ 'app.calculate_strategy' ]
+        App\Domain\DeliveryMethod\Strategy\DeliveryMethodStrategyInterface:
+            tags: [ 'app.delivery_method_strategy' ]
+
+        # Domain repositories
+        App\Domain\Country\Repository\CountryRepositoryInterface:
+            tags: ['doctrine.country.repository']
+        App\Domain\Currency\Repository\CurrencyRepositoryInterface:
+            tags: [ 'doctrine.currency.repository' ]
+        App\Domain\Region\Repository\RegionRepositoryInterface:
+            tags: [ 'doctrine.region.repository' ]
+        App\Domain\City\Repository\CityRepositoryInterface:
+            tags: [ 'doctrine.city.repository' ]
+        App\Domain\Address\Repository\AddressRepositoryInterface:
+            tags: [ 'doctrine.address.repository' ]
+        App\Domain\DeliveryMethod\Repository\DeliveryMethodRepositoryInterface:
+            tags: [ 'doctrine.delivery_method.repository' ]
+        App\Domain\DeliveryService\Repository\DeliveryServiceRepositoryInterface:
+            tags: [ 'doctrine.delivery_service.repository' ]
+        App\Domain\DeliveryService\Repository\DeliveryServiceRestrictAreaRepositoryInterface:
+            tags: [ 'doctrine.delivery_service_restrict_area.repository' ]
+        App\Domain\DeliveryService\Repository\DeliveryServiceRestrictPackageRepositoryInterface:
+            tags: [ 'doctrine.delivery_service_restrict_package.repository' ]
+            public: true
+        App\Domain\TariffPlan\Repository\TariffPlanRepositoryInterface:
+            tags: [ 'doctrine.tariff_plan.repository' ]
+        App\Domain\Contact\Repository\ContactRepositoryInterface:
+            tags: [ 'doctrine.contact.repository' ]
+        App\Domain\Shipment\Repository\ShipmentRepositoryInterface:
+            tags: [ 'doctrine.shipment.repository' ]
+        App\Domain\Shipment\Repository\CalculateRepositoryInterface:
+            tags: [ 'doctrine.calculate.repository' ]
+        App\Domain\Shipment\Repository\ProductRepositoryInterface:
+            tags: [ 'doctrine.product.repository' ]
+        App\Domain\Shipment\Repository\StoreRepositoryInterface:
+            tags: [ 'doctrine.store.repository' ]
+        App\Domain\Tax\Repository\TaxRepositoryInterface:
+            tags: [ 'doctrine.tax.repository' ]
+        App\Domain\Shipment\Repository\CargoTypeRepositoryInterface:
+            tags: [ 'doctrine.cargo_type.repository' ]
+            public: true
+        App\Domain\Shipment\Repository\CargoRestrictionRepositoryInterface:
+            tags: [ 'doctrine.cargo_restriction.repository' ]
+            public: true
+        App\Domain\PickupPoint\Repository\PickupPointRepositoryInterface:
+            tags: [ 'doctrine.pickup_point.repository' ]
+            public: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/Infrastructure/Kernel.php'
+
+    # DaData
+    DaData.Client:
+        class: Dadata\DadataClient
+        arguments: ["%dadata_token%", "%dadata_secret%"]
+
+    # Find address from external source
+    App\Application\Address\Query\External\FindExternalAddressInterface:
+        class: App\Infrastructure\DaData\Service\FindByAddressService
+        arguments: ["@DaData.Client", "@serializer"]
+
+    # Find address by OKTMO service
+    App\Infrastructure\DaData\Service\FindAddressByOktmoService:
+        arguments:
+            $dadataClient: '@DaData.Client'
+            $logger: '@logger'
+
+    # Logging
+    Symfony\Bridge\Monolog\Handler\ElasticsearchLogstashHandler:
+        autowire: false
+        arguments:
+            $endpoint: "%logging.elastic.endpoint%"
+            $index: "%logging.elastic.index%"
+            $client: '@elastic.client'
+            $level: !php/const Monolog\Logger::DEBUG
+            $bubble: true
+            $elasticsearchVersion: "%logging.elastic.version%"
+
+    # Tariff plan strategy context
+    App\Domain\TariffPlan\Strategy\TariffPlanContext:
+        arguments:
+            $strategies: !tagged_iterator app.tariff_plan_strategy
+
+    # Tariff plan infrastructure strategies
+    App\Infrastructure\DeliveryService\CDEK\Strategy\CdekTariffPlanStrategy:
+        tags: ['app.tariff_plan_strategy']
+    App\Infrastructure\DeliveryService\Dellin\Strategy\DellinTariffPlanStrategy:
+        tags: [ 'app.tariff_plan_strategy' ]
+    App\Infrastructure\DeliveryService\Dostavista\Strategy\DostavistaTariffPlanStrategy:
+        tags: [ 'app.tariff_plan_strategy' ]
+    App\Infrastructure\DeliveryService\Pickup\Strategy\PickupTariffPlanStrategy:
+        tags: [ 'app.tariff_plan_strategy' ]
+
+    # Calculate strategy context
+    App\Domain\Shipment\Strategy\CalculateContext:
+        arguments:
+            $strategies: !tagged_iterator app.calculate_strategy
+
+    # Calculate infrastructure strategies
+    App\Infrastructure\DeliveryService\CDEK\Strategy\CdekCalculateStrategy:
+        tags: [ 'app.calculate_strategy' ]
+    App\Infrastructure\DeliveryService\Dellin\Strategy\DellinCalculateStrategy:
+        tags: [ 'app.calculate_strategy' ]
+    App\Infrastructure\DeliveryService\Dostavista\Strategy\DostavistaCalculateStrategy:
+        tags: [ 'app.calculate_strategy' ]
+    App\Infrastructure\DeliveryService\Pickup\Strategy\PickupCalculateStrategy:
+        tags: [ 'app.calculate_strategy' ]
+
+    # DeliveryMethod strategy context
+    App\Domain\DeliveryMethod\Strategy\DeliveryMethodContext:
+        arguments:
+            $strategies: !tagged_iterator app.delivery_method_strategy
+
+    # DeliveryMethod infrastructure strategies
+    App\Domain\DeliveryMethod\Strategy\Courier\CourierDeliveryMethodStrategy:
+        tags: [ 'app.delivery_method_strategy' ]
+    App\Domain\DeliveryMethod\Strategy\Pickup\PickupDeliveryMethodStrategy:
+        tags: [ 'app.delivery_method_strategy' ]
+    App\Domain\DeliveryMethod\Strategy\Pvz\PvzDeliveryMethodStrategy:
+        tags: [ 'app.delivery_method_strategy' ]
+
+    # Infrastructure repositories
+    DoctrineCountryRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\Country\DoctrineCountryRepository
+        tags: ['doctrine.country.repository']
+    DoctrineRegionRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\Region\DoctrineRegionRepository
+        tags: ['doctrine.region.repository']
+    DoctrineCityRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\City\DoctrineCityRepository
+        tags: ['doctrine.city.repository']
+    DoctrineAddressRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\Address\DoctrineAddressRepository
+        tags: ['doctrine.city.repository']
+    DoctrineCurrencyRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\Currency\DoctrineCurrencyRepository
+        tags: [ 'doctrine.currency.repository' ]
+    DoctrineDeliveryServiceRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\DeliveryService\DoctrineDeliveryServiceRepository
+        tags: [ 'doctrine.delivery_service.repository' ]
+    DeliveryServiceRestrictAreaRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\DeliveryService\DoctrineDeliveryServiceRestrictAreaRepository
+        tags: [ 'doctrine.delivery_service_restrict_area.repository' ]
+    DoctrineDeliveryServiceRestrictPackageRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\DeliveryService\DoctrineDeliveryServiceRestrictPackageRepository
+        tags: [ 'doctrine.delivery_service_restrict_package.repository' ]
+    DoctrineTariffPlanRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\TariffPlan\DoctrineTariffPlanRepository
+        tags: [ 'doctrine.tariff_plan.repository' ]
+    DoctrineContactRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\Contact\DoctrineContactRepository
+        tags: [ 'doctrine.contact.repository' ]
+    DoctrineShipmentRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\Shipment\DoctrineShipmentRepository
+        tags: [ 'doctrine.shipment.repository' ]
+    DoctrineCalculateRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\Shipment\DoctrineCalculateRepository
+        tags: [ 'doctrine.calculate.repository' ]
+    DoctrineProductRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\Shipment\DoctrineProductRepository
+        tags: [ 'doctrine.product.repository' ]
+    DoctrineStoreRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\Shipment\DoctrineStoreRepository
+        tags: [ 'doctrine.store.repository' ]
+    DoctrineCargoTypeRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\Shipment\DoctrineCargoTypeRepository
+        tags: [ 'doctrine.cargo_type.repository' ]
+    DoctrineCargoRestrictionRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\Shipment\DoctrineCargoRestrictionRepository
+        tags: [ 'doctrine.cargo_restriction.repository' ]
+
+    DoctrineTaxRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\Tax\DoctrineTaxRepository
+        tags: ['doctrine.tax.repository']
+    App\Infrastructure\DBAL\Repository\Doctrine\DeliveryMethod\DoctrineDeliveryMethodRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\DeliveryMethod\DoctrineDeliveryMethodRepository
+        tags: [ 'doctrine.delivery_method.repository' ]
+        public: true
+
+    App\Infrastructure\DBAL\Repository\Doctrine\PickupPoint\DoctrinePickupPointMethodRepository:
+        class: App\Infrastructure\DBAL\Repository\Doctrine\PickupPoint\DoctrinePickupPointMethodRepository
+        tags: [ 'doctrine.pickup_point.repository' ]
+        public: true

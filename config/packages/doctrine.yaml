@@ -1,0 +1,136 @@
+doctrine:
+    dbal:
+        url: '%env(resolve:DATABASE_URL)%'
+
+        # IMPORTANT: You MUST configure your server version,
+        # either here or in the DATABASE_URL env var (see .env file)
+        #server_version: '15'
+        types:
+            point: App\Infrastructure\DBAL\Types\Doctrine\PointType
+            geometry: App\Infrastructure\DBAL\Types\Doctrine\PolygonType
+
+            day: App\Infrastructure\DBAL\Types\Doctrine\Store\DayType
+            startTime: App\Infrastructure\DBAL\Types\Doctrine\Store\StartTimeType
+            endTime: App\Infrastructure\DBAL\Types\Doctrine\Store\EndTimeType
+    orm:
+        auto_generate_proxy_classes: true
+        enable_lazy_ghost_objects: true
+        naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+        auto_mapping: true
+        dql:
+            string_functions:
+                ST_Contains: App\Infrastructure\DBAL\Function\PostgreSQL\STContains
+                ST_GeomFromText: App\Infrastructure\DBAL\Function\PostgreSQL\STGeomFromText
+                ST_AsGeoJSON: App\Infrastructure\DBAL\Function\PostgreSQL\STAsGeoJSON
+                ST_AsText: App\Infrastructure\DBAL\Function\PostgreSQL\STAsText
+        mappings:
+            App\Domain\Country:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/Domain/Country/Entity'
+                prefix: 'App\Domain\Country\Entity'
+                alias: App
+            App\Domain\Currency:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/Domain/Currency/Entity'
+                prefix: 'App\Domain\Currency\Entity'
+                alias: App
+            App\Domain\DeliveryService:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/Domain/DeliveryService/Entity'
+                prefix: 'App\Domain\DeliveryService\Entity'
+                alias: App
+            App\Domain\TariffPlan:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/Domain/TariffPlan/Entity'
+                prefix: 'App\Domain\TariffPlan\Entity'
+                alias: App
+            App\Domain\Region:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/Domain/Region/Entity'
+                prefix: 'App\Domain\Region\Entity'
+                alias: App
+            App\Domain\Directory:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/Domain/Directory/Entity'
+                prefix: 'App\Domain\Directory\Entity'
+                alias: App
+            App\Domain\City:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/Domain/City/Entity'
+                prefix: 'App\Domain\City\Entity'
+                alias: App
+            App\Domain\Address:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/Domain/Address/Entity'
+                prefix: 'App\Domain\Address\Entity'
+                alias: App
+            App\Domain\Contact:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/Domain/Contact/Entity'
+                prefix: 'App\Domain\Contact\Entity'
+                alias: App
+            App\Domain\Shipment:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/Domain/Shipment/Entity'
+                prefix: 'App\Domain\Shipment\Entity'
+                alias: App
+            App\Domain\Tax:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/Domain/Tax/Entity'
+                prefix: 'App\Domain\Tax\Entity'
+                alias: App
+            App\Domain\DeliveryMethod:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/Domain/DeliveryMethod/Entity'
+                prefix: 'App\Domain\DeliveryMethod\Entity'
+                alias: App
+            App\Domain\PickupPoint:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/Domain/PickupPoint/Entity'
+                prefix: 'App\Domain\PickupPoint\Entity'
+                alias: App
+
+when@dev:
+    doctrine:
+        dbal:
+            connections:
+                default:
+                    mapping_types:
+                        point: point
+                        geometry: geometry
+                        day: day
+                        startTime: startTime
+                        endTime: endTime
+
+when@prod:
+    doctrine:
+        orm:
+            auto_generate_proxy_classes: false
+            proxy_dir: '%kernel.build_dir%/doctrine/orm/Proxies'
+            query_cache_driver:
+                type: pool
+                pool: doctrine.system_cache_pool
+            result_cache_driver:
+                type: pool
+                pool: doctrine.result_cache_pool
+
+    framework:
+        cache:
+            pools:
+                doctrine.result_cache_pool:
+                    adapter: cache.app
+                doctrine.system_cache_pool:
+                    adapter: cache.system

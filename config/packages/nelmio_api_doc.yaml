@@ -1,0 +1,12 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: Shipment MS
+            description: API documentation for shipment ms!
+            version: 1.7.0
+        servers:
+            - url: http://127.0.0.1:9501/
+              description: API over HTTP local
+    areas:
+        path_patterns: # an array of regexps (document only routes under /api, except /api/doc)
+            - ^/api(?!/doc.json$)

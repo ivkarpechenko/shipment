@@ -1,0 +1,39 @@
+monolog:
+  handlers:
+    main:
+      type: fingers_crossed
+      action_level: info
+      handler: grouped_main
+
+    grouped_main:
+      type:    group
+      members: [rotating_file, nested]
+
+    rotating_file:
+      type: rotating_file
+      path: "%kernel.logs_dir%/shipment-ms-%kernel.environment%.log"
+      max_files: 7
+      date_format: Y-m-d
+      level: info
+      channels: [ "!event" ]
+
+    nested:
+      type: stream
+      path: "php://stderr"
+      level: info
+      channels: [ "!event" ]
+
+    console:
+      type: console
+      process_psr_3_messages: false
+      channels: [ "!event", "!doctrine" ]
+
+    deprecation:
+      type: stream
+      path: "%kernel.logs_dir%/%kernel.environment%.deprecations.log"
+
+    deprecation_filter:
+      type: filter
+      handler: deprecation
+      max_level: info
+      channels: [ "php" ]
